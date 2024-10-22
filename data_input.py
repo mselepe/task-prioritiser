@@ -1,15 +1,21 @@
 import os
 import calendar
-from datetime import datetime
+from datetime import datetime, date
 from date_selector import select_date
-# import questionary
 
 def tasks_input():
+    """Retrieves the list of tasks that is to be ranked by the programme
+
+    Returns:
+        list: List of tasks to be ranked
+    """    
+    os.system("clear") # Clear the terminal
+
+    # Get the list of tasks that are to be prioritised
     finalised = False
     while finalised == False:
         tasks_to_do = input("List the tasks you want to complete: \n").strip().lower()
         tasks_to_do = {task.strip() for task in tasks_to_do.split(",") if task not in [" ", ""]}
-        # tasks_to_do = tasks_to_do.strip().split(",")
 
         print("\nInputted tasks:")
         for num, task in enumerate(tasks_to_do, start=1):
@@ -28,7 +34,16 @@ def tasks_input():
     return list(tasks_to_do)
 
 
-def create_task_score(tasks_to_do):
+def create_task_score(tasks_to_do:list):
+    """The tasks will be assigned a score per category. 
+    This function creates the dictionary that will store the scores.
+
+    Args:
+        tasks_to_do (list): The tasks to be ranked
+
+    Returns:
+        dict: The keys are the tasks and the values are the scores which are initially each = 0
+    """    
     task_scores = {}
     for task in tasks_to_do:
         task_scores.update({task : 0})
@@ -36,9 +51,39 @@ def create_task_score(tasks_to_do):
     return task_scores
 
 
-def assign_task_score(task_scores, tasks_list):
-    # Assign the tasks scores according to importance.
-    # The maximum score being the length of the list and min being 1
+def assign_overall_task_score(task_scores:dict, ranked_tasks_list:list):
+    """This keeps track of the overall scores considering all of the criteria.
+
+    Args:
+        task_scores (dict): The accumulated score of the tasks 
+        ranked_tasks_list (list): The ranked list by a specific criteria
+
+    Returns:
+        dict: Updated dictionary with scores
+    """    
+    # The maximum score is the length of the list and the min is 1
+    maximum_score = len(ranked_tasks_list)
+
+    for task in ranked_tasks_list:
+        task_scores[task] += maximum_score
+        maximum_score -= 1
+
+    return task_scores
+
+
+def assign_specific_task_score(tasks_list:list):
+    """This keeps track of the scores considering a specific criteria.
+
+    Args:
+        tasks_list (list): The ranked list by a specific criteria
+
+    Returns:
+        dict: Updated dictionary with scores
+    """ 
+    task_scores = {}
+    for task in tasks_list:
+        task_scores.update({task : 0})
+
     maximum_score = len(tasks_list)
 
     for task in tasks_list:
@@ -48,8 +93,15 @@ def assign_task_score(task_scores, tasks_list):
     return task_scores
 
 
-# most important
-def rank_importance(tasks_to_do):
+def task_importance(tasks_to_do:list):
+    """The user ranks the tasks by order of importance
+
+    Args:
+        tasks_to_do (list): _description_
+
+    Returns:
+        dict: Updated dictionary with scores
+    """    
     os.system("clear") # Clear the terminal
 
     finalised = False
@@ -75,7 +127,7 @@ Try again.""")
 
 
 # hardest to easiest
-def rank_difficulty(tasks_to_do):
+def task_difficulty(tasks_to_do:list):
     os.system("clear") # Clear the terminal
 
     finalised = False
@@ -101,59 +153,65 @@ Try again.""")
 
 
 # time-frame for each task
-def task_timeframe(tasks_to_do):
-    task_dates = {}
+def task_timeframe(tasks_to_do:list):
+    os.system("clear") # Clear the terminal
+
+    task_dates_difference = {}
+    current_date = date.today()
+    current_year = current_date.year
+    current_month = current_date.month
 
     for task in tasks_to_do:
-        print("task")
+        print(f"For the following task: {task}")
         while True:
             try: 
-                year = 2024
-                month = int(input("Enter the month your task should be done by (e.g. 4): "))
+                year = int(input("Enter the year your task should be completed by: "))
+                month = int(input("Enter the month your task should be completed by (e.g. 4): "))
                 if 1 > month > 12:
                     raise ValueError("Month must be between 1 and 12")
-                selected_date = select_date(year, month)
+                elif year < current_year:
+                    raise ValueError("Year must be in the future")
+                elif year == current_year and month < current_month:
+                    raise ValueError("Month must be in the future")
 
-                print(f"You selected: {selected_date}")
+                selected_date = select_date(year, month)
+                num_days_difference = calc_num_days(current_date, selected_date)
+                task_dates_difference.update({task : num_days_difference})
                 break
+
             except ValueError:
                 print("The month entered should be in the formm of an integer.")
+        print("\n")
+
+    tasks_by_timeframe = rank_tasks_by_time(task_dates_difference)
+    return tasks_by_timeframe
     
-    # for task in tasks_to_do:
-    #     action = questionary.select(
-    #             "When should the following tas_to_do:
-    #     action = questionary.select(
-    #             "When should the following task, {task}, be completed:",
-    #             choices=[
-    #                 "Volunteer for a slot",
-    #                 "Cancel a volunteering slot"
-    #             ]).ask()
-    #     return action
+
+def calc_num_days(current_date:datetime.date, selected_date_str:str):
+    selected_date_list = selected_date_str.split("-")
+    selected_year = int(selected_date_list[0])
+    selected_month = int(selected_date_list[1])
+    selected_day = int(selected_date_list[2])
+    selected_date_dtime = date(selected_year, selected_month, selected_day)
+
+    return (selected_date_dtime - current_date).days
 
 
-    # text_calendar = calendar.TextCalendar()
-    # print(text_calendar.prmonth(2024, 1))
-
-    current_datetime = datetime.now()
-    current_date = current_datetime.date()
-
-
-
-
-def rank_tasks(tasks):
-
-    pass
+def rank_tasks_by_time(tasks_dictionary:dict):
+    
+    sorted_tasks_by_score = dict(sorted(tasks_dictionary.items(), key=lambda x:x[1]))
+    sorted_tasks_list = sorted_tasks_by_score.keys()
+    
+    return list(sorted_tasks_list)
 
 
+def rank_tasks(tasks_dictionary:dict):
+    
+    sorted_tasks_by_score = dict(sorted(tasks_dictionary.items(), key=lambda x:x[1], reverse=True))
+    sorted_tasks_list = sorted_tasks_by_score.keys()
+    
+    return list(sorted_tasks_list)
 
-# hardest task
 
 
-og_list = tasks_input()
-# task_scores = create_task_score(og_list)
-# imp = rank_importance(og_list)
-# assign_task_score(task_scores, imp)
-# diff = rank_difficulty(og_list)
-# print(assign_task_score(task_scores, diff))
-# task_timeframe(og_list)
 
