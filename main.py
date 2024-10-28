@@ -28,9 +28,9 @@ def main():
     overall_ranked_tasks = rank_tasks(overall_task_scores)
 
     
+    os.system("clear") # Clear the terminal
     done = False
     while done == False:
-        os.system("clear") # Clear the terminal
         print("""Your tasks have been ranked by importance, timeframe, difficulty and overall, 
 considering all of these factors.\n""")
 
@@ -40,16 +40,12 @@ considering all of these factors.\n""")
         if priority_choice in ['importance', 'difficulty', 'timeframe', 'overall', 'quit', 'q']:
             if priority_choice == "importance":
                 display_rankings(priority_choice, ranked_by_importance)
-                done = True
             elif priority_choice == "difficulty":
                 display_rankings(priority_choice, ranked_by_difficulty)
-                done = True
             elif priority_choice == "timeframe":
                 display_rankings(priority_choice, ranked_by_timeframe)
-                done = True
             elif priority_choice == "overall":
                 display_rankings(priority_choice, overall_ranked_tasks)
-                done = True
             else:
                 done = True
             

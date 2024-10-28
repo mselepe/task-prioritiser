@@ -14,7 +14,7 @@ def tasks_input():
     # Get the list of tasks that are to be prioritised
     finalised = False
     while finalised == False:
-        tasks_to_do = input("List the tasks you want to complete: \n").strip().lower()
+        tasks_to_do = input("List the tasks you want to complete and se[erate the by commas (e.g. eat, code, sleep): \n").strip().lower()
         tasks_to_do = {task.strip() for task in tasks_to_do.split(",") if task not in [" ", ""]}
 
         print("\nInputted tasks:")
